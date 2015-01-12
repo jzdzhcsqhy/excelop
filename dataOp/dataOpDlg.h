@@ -16,6 +16,7 @@ class CdataOpDlg : public CDialogEx
 // 构造
 public:
 	CdataOpDlg(CWnd* pParent = NULL);	// 标准构造函数
+	~CdataOpDlg();
 
 // 对话框数据
 	enum { IDD = IDD_DATAOP_DIALOG };
@@ -40,13 +41,18 @@ private:
 	CString m_strPath;
 	CWinThread* m_pthMainProcess;
 	CApplication m_ExcelApp;
+	CWorkbooks m_books;
 
 public:
 	void refreshListBox();
+	void DisPlay( vector<double> vd);
+	void ResetOutput( void );
 
 	static UINT MainProcess( LPVOID lParam );
+	void MainProcess(void );
 	static void dealWith( const CString &filename, CdataOpDlg* p);
-
+	static CString VariantToCString( VARIANT var );
+	static double GetNumber(CString strNumber, CString strSplit, int *pos);
 public:
 	afx_msg void OnEnChangeSelectfile();
 //	afx_msg void OnLbnSelchangeFilelist();

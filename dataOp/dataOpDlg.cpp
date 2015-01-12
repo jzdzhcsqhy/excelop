@@ -74,6 +74,15 @@ BEGIN_MESSAGE_MAP(CdataOpDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
+CdataOpDlg::~CdataOpDlg()
+{
+	this->m_books.ReleaseDispatch();
+	this->m_ExcelApp.Quit();
+	this->m_ExcelApp.ReleaseDispatch();
+	
+}
+
+
 // CdataOpDlg 消息处理程序
 
 BOOL CdataOpDlg::OnInitDialog()
@@ -112,11 +121,43 @@ BOOL CdataOpDlg::OnInitDialog()
 		AfxMessageBox(_T("启动OLE失败"));
 		return FALSE;
 	}
+
+	//创建Excel 服务器(启动Excel)
 	if(!this->m_ExcelApp.CreateDispatch(_T("Excel.Application")) )
 	{
 		AfxMessageBox(_T("启动Excel服务器失败!"));
-		return ;
+		return FALSE;
 	}
+
+	
+
+	/*判断当前Excel的版本*/
+	CString strExcelVersion = this->m_ExcelApp.get_Version();
+	int iStart = 0;
+	strExcelVersion = strExcelVersion.Tokenize(_T("."), iStart);
+	if (_T("11") == strExcelVersion)
+	{
+		AfxMessageBox(_T("当前Excel的版本是2003。"));
+	}
+	else if (_T("12") == strExcelVersion)
+	{
+		AfxMessageBox(_T("当前Excel的版本是2007。"));
+	}
+	else if (_T("14") == strExcelVersion)
+	{
+		AfxMessageBox(_T("当前Excel的版本是2010。"));
+	}
+	else
+	{
+		AfxMessageBox(_T("当前Excel的版本是其他版本。"));
+	}
+
+	this->m_ExcelApp.put_UserControl(FALSE);
+
+	/*得到工作簿容器*/
+	this->m_books.AttachDispatch(this->m_ExcelApp.get_Workbooks());
+
+	ResetOutput();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -251,7 +292,7 @@ void CdataOpDlg::OnBnClickedOk()
 	str.Format(_T("您一共选择了 %d 个文件，是否开始处理？"),iCnt);
 	if( IDYES == MessageBox(str, _T("提示"), MB_YESNO) )
 	{
-		this->m_pthMainProcess = AfxBeginThread(CdataOpDlg::MainProcess, (LPVOID)this);
+		MainProcess();
 	}
 	else
 	{
@@ -282,6 +323,7 @@ UINT CdataOpDlg::MainProcess( LPVOID lParam )
 		pFileList->GetText(i,str);
 		/*AfxMessageBox(str);*/
 		pThis->SetDlgItemTextW(IDC_STATUS,_T("正在处理文件 ") + str + _T("...") );
+
 		CdataOpDlg::dealWith(str, pThis);
 	}
 
@@ -289,3 +331,50 @@ UINT CdataOpDlg::MainProcess( LPVOID lParam )
 	return 0;
 }
 
+void CdataOpDlg::MainProcess(void )
+{
+	CdataOpDlg* pThis = this;
+
+	CWnd* pStatus = pThis->GetDlgItem(IDC_STATUS);
+	CListBox* pFileList =(CListBox* ) pThis->GetDlgItem(IDC_FILELIST);
+	CListCtrl* pOutput =(CListCtrl* ) pThis->GetDlgItem(IDC_OUTPUT);
+
+	int iCnt = pFileList->GetCount();
+	for(int i=0; i<iCnt; i++ )
+	{
+		CString str;
+		pFileList->GetText(i,str);
+		/*AfxMessageBox(str);*/
+		pThis->SetDlgItemTextW(IDC_STATUS,_T("正在处理文件 ") + str + _T("...") );
+		CdataOpDlg::dealWith(str, pThis);
+	}
+
+
+	return ;
+}
+
+void CdataOpDlg::ResetOutput()
+{
+	CListCtrl* plc = (CListCtrl*) this->GetDlgItem(IDC_OUTPUT);
+	plc->DeleteAllItems();
+// 	plc->InsertColumn( 0, _T("ID"), LVCFMT_LEFT, 40 );
+// 	plc->InsertColumn( 1, _T("NAME"), LVCFMT_LEFT, 50 );
+// 	plc->InsertColumn( 3, _T("NAME"), LVCFMT_LEFT, 50 );
+// 	plc->InsertColumn( 4, _T("NAME"), LVCFMT_LEFT, 50 );
+
+	plc->InsertColumn( 0, _T("ID"));
+	plc->InsertColumn( 1, _T("NAME"));
+	plc->InsertColumn( 3, _T("a"));
+	plc->InsertColumn( 4, _T("NAME"));
+
+
+	int nRow = plc->InsertItem(0, _T("123333333"));
+	plc->SetItemText(nRow,1,_T("3333"));
+	plc->InsertItem(3, _T("123333334"));
+	plc->InsertItem(2, _T("123333335"));
+}
+
+void CdataOpDlg::DisPlay( vector<double> vd)
+{
+
+}
