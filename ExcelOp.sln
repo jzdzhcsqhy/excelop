@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelOp", "ExcelOp\ExcelOp.vcxproj", "{3C656998-C526-4D4F-BFD9-A1B1065269F9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dateoperate", "dateoperate\dateoperate.vcxproj", "{40FCFFA3-A36C-452D-922C-ED63F3C1D552}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dataOp", "dataOp\dataOp.vcxproj", "{177BBDCE-70BE-4B78-957F-DF9470EF229C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C656998-C526-4D4F-BFD9-A1B1065269F9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3C656998-C526-4D4F-BFD9-A1B1065269F9}.Debug|Win32.Build.0 = Debug|Win32
+		{3C656998-C526-4D4F-BFD9-A1B1065269F9}.Release|Win32.ActiveCfg = Release|Win32
+		{3C656998-C526-4D4F-BFD9-A1B1065269F9}.Release|Win32.Build.0 = Release|Win32
+		{40FCFFA3-A36C-452D-922C-ED63F3C1D552}.Debug|Win32.ActiveCfg = Debug|Win32
+		{40FCFFA3-A36C-452D-922C-ED63F3C1D552}.Debug|Win32.Build.0 = Debug|Win32
+		{40FCFFA3-A36C-452D-922C-ED63F3C1D552}.Release|Win32.ActiveCfg = Release|Win32
+		{40FCFFA3-A36C-452D-922C-ED63F3C1D552}.Release|Win32.Build.0 = Release|Win32
+		{177BBDCE-70BE-4B78-957F-DF9470EF229C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{177BBDCE-70BE-4B78-957F-DF9470EF229C}.Debug|Win32.Build.0 = Debug|Win32
+		{177BBDCE-70BE-4B78-957F-DF9470EF229C}.Release|Win32.ActiveCfg = Release|Win32
+		{177BBDCE-70BE-4B78-957F-DF9470EF229C}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
