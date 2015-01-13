@@ -1,5 +1,5 @@
-
-// dataOpDlg.cpp : ÊµÏÖÎÄ¼ş
+ï»¿
+// dataOpDlg.cpp : å®ç°æ–‡ä»¶
 //
 
 #include "stdafx.h"
@@ -7,26 +7,27 @@
 #include "dataOpDlg.h"
 #include "afxdialogex.h"
 #include "excel9.h"
+#include "ModifyDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 
-// ÓÃÓÚÓ¦ÓÃ³ÌĞò¡°¹ØÓÚ¡±²Ëµ¥ÏîµÄ CAboutDlg ¶Ô»°¿ò
+// ç”¨äºåº”ç”¨ç¨‹åºâ€œå…³äºâ€èœå•é¡¹çš„ CAboutDlg å¯¹è¯æ¡†
 
 class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
 
-// ¶Ô»°¿òÊı¾İ
+// å¯¹è¯æ¡†æ•°æ®
 	enum { IDD = IDD_ABOUTBOX };
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
 
-// ÊµÏÖ
+// å®ç°
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -44,7 +45,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// CdataOpDlg ¶Ô»°¿ò
+// CdataOpDlg å¯¹è¯æ¡†
 
 
 
@@ -71,6 +72,9 @@ BEGIN_MESSAGE_MAP(CdataOpDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON2, &CdataOpDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDOK, &CdataOpDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDCANCEL, &CdataOpDlg::OnBnClickedCancel)
+	ON_NOTIFY(NM_CLICK, IDC_OUTPUT, &CdataOpDlg::OnNMClickOutput)
+	ON_NOTIFY(NM_DBLCLK, IDC_OUTPUT, &CdataOpDlg::OnNMDblclkOutput)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_OUTPUT, &CdataOpDlg::OnNMCustomdrawOutput)
 END_MESSAGE_MAP()
 
 
@@ -83,15 +87,15 @@ CdataOpDlg::~CdataOpDlg()
 }
 
 
-// CdataOpDlg ÏûÏ¢´¦Àí³ÌĞò
+// CdataOpDlg æ¶ˆæ¯å¤„ç†ç¨‹åº
 
 BOOL CdataOpDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// ½«¡°¹ØÓÚ...¡±²Ëµ¥ÏîÌí¼Óµ½ÏµÍ³²Ëµ¥ÖĞ¡£
+	// å°†â€œå…³äº...â€èœå•é¡¹æ·»åŠ åˆ°ç³»ç»Ÿèœå•ä¸­ã€‚
 
-	// IDM_ABOUTBOX ±ØĞëÔÚÏµÍ³ÃüÁî·¶Î§ÄÚ¡£
+	// IDM_ABOUTBOX å¿…é¡»åœ¨ç³»ç»Ÿå‘½ä»¤èŒƒå›´å†…ã€‚
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -109,57 +113,57 @@ BOOL CdataOpDlg::OnInitDialog()
 		}
 	}
 
-	// ÉèÖÃ´Ë¶Ô»°¿òµÄÍ¼±ê¡£µ±Ó¦ÓÃ³ÌĞòÖ÷´°¿Ú²»ÊÇ¶Ô»°¿òÊ±£¬¿ò¼Ü½«×Ô¶¯
-	//  Ö´ĞĞ´Ë²Ù×÷
-	SetIcon(m_hIcon, TRUE);			// ÉèÖÃ´óÍ¼±ê
-	SetIcon(m_hIcon, FALSE);		// ÉèÖÃĞ¡Í¼±ê
+	// è®¾ç½®æ­¤å¯¹è¯æ¡†çš„å›¾æ ‡ã€‚å½“åº”ç”¨ç¨‹åºä¸»çª—å£ä¸æ˜¯å¯¹è¯æ¡†æ—¶ï¼Œæ¡†æ¶å°†è‡ªåŠ¨
+	//  æ‰§è¡Œæ­¤æ“ä½œ
+	SetIcon(m_hIcon, TRUE);			// è®¾ç½®å¤§å›¾æ ‡
+	SetIcon(m_hIcon, FALSE);		// è®¾ç½®å°å›¾æ ‡
 
-	// TODO: ÔÚ´ËÌí¼Ó¶îÍâµÄ³õÊ¼»¯´úÂë
+	// TODO: åœ¨æ­¤æ·»åŠ é¢å¤–çš„åˆå§‹åŒ–ä»£ç 
 
 	if( ! AfxOleInit() )
 	{
-		AfxMessageBox(_T("Æô¶¯OLEÊ§°Ü"));
+		AfxMessageBox(_T("å¯åŠ¨OLEå¤±è´¥"));
 		return FALSE;
 	}
 
-	//´´½¨Excel ·şÎñÆ÷(Æô¶¯Excel)
+	//åˆ›å»ºExcel æœåŠ¡å™¨(å¯åŠ¨Excel)
 	if(!this->m_ExcelApp.CreateDispatch(_T("Excel.Application")) )
 	{
-		AfxMessageBox(_T("Æô¶¯Excel·şÎñÆ÷Ê§°Ü!"));
+		AfxMessageBox(_T("å¯åŠ¨ExcelæœåŠ¡å™¨å¤±è´¥!"));
 		return FALSE;
 	}
 
 	
 
-	/*ÅĞ¶Ïµ±Ç°ExcelµÄ°æ±¾*/
+	/*åˆ¤æ–­å½“å‰Excelçš„ç‰ˆæœ¬*/
 	CString strExcelVersion = this->m_ExcelApp.get_Version();
 	int iStart = 0;
 	strExcelVersion = strExcelVersion.Tokenize(_T("."), iStart);
 	if (_T("11") == strExcelVersion)
 	{
-		AfxMessageBox(_T("µ±Ç°ExcelµÄ°æ±¾ÊÇ2003¡£"));
+		AfxMessageBox(_T("å½“å‰Excelçš„ç‰ˆæœ¬æ˜¯2003ã€‚"));
 	}
 	else if (_T("12") == strExcelVersion)
 	{
-		AfxMessageBox(_T("µ±Ç°ExcelµÄ°æ±¾ÊÇ2007¡£"));
+		AfxMessageBox(_T("å½“å‰Excelçš„ç‰ˆæœ¬æ˜¯2007ã€‚"));
 	}
 	else if (_T("14") == strExcelVersion)
 	{
-		AfxMessageBox(_T("µ±Ç°ExcelµÄ°æ±¾ÊÇ2010¡£"));
+		AfxMessageBox(_T("å½“å‰Excelçš„ç‰ˆæœ¬æ˜¯2010ã€‚"));
 	}
 	else
 	{
-		AfxMessageBox(_T("µ±Ç°ExcelµÄ°æ±¾ÊÇÆäËû°æ±¾¡£"));
+		AfxMessageBox(_T("å½“å‰Excelçš„ç‰ˆæœ¬æ˜¯å…¶ä»–ç‰ˆæœ¬ã€‚"));
 	}
 
 	this->m_ExcelApp.put_UserControl(FALSE);
 
-	/*µÃµ½¹¤×÷²¾ÈİÆ÷*/
+	/*å¾—åˆ°å·¥ä½œç°¿å®¹å™¨*/
 	this->m_books.AttachDispatch(this->m_ExcelApp.get_Workbooks());
 
 	ResetOutput();
 
-	return TRUE;  // ³ı·Ç½«½¹µãÉèÖÃµ½¿Ø¼ş£¬·ñÔò·µ»Ø TRUE
+	return TRUE;  // é™¤éå°†ç„¦ç‚¹è®¾ç½®åˆ°æ§ä»¶ï¼Œå¦åˆ™è¿”å› TRUE
 }
 
 void CdataOpDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -175,19 +179,19 @@ void CdataOpDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 }
 
-// Èç¹ûÏò¶Ô»°¿òÌí¼Ó×îĞ¡»¯°´Å¥£¬ÔòĞèÒªÏÂÃæµÄ´úÂë
-//  À´»æÖÆ¸ÃÍ¼±ê¡£¶ÔÓÚÊ¹ÓÃÎÄµµ/ÊÓÍ¼Ä£ĞÍµÄ MFC Ó¦ÓÃ³ÌĞò£¬
-//  Õâ½«ÓÉ¿ò¼Ü×Ô¶¯Íê³É¡£
+// å¦‚æœå‘å¯¹è¯æ¡†æ·»åŠ æœ€å°åŒ–æŒ‰é’®ï¼Œåˆ™éœ€è¦ä¸‹é¢çš„ä»£ç 
+//  æ¥ç»˜åˆ¶è¯¥å›¾æ ‡ã€‚å¯¹äºä½¿ç”¨æ–‡æ¡£/è§†å›¾æ¨¡å‹çš„ MFC åº”ç”¨ç¨‹åºï¼Œ
+//  è¿™å°†ç”±æ¡†æ¶è‡ªåŠ¨å®Œæˆã€‚
 
 void CdataOpDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // ÓÃÓÚ»æÖÆµÄÉè±¸ÉÏÏÂÎÄ
+		CPaintDC dc(this); // ç”¨äºç»˜åˆ¶çš„è®¾å¤‡ä¸Šä¸‹æ–‡
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// Ê¹Í¼±êÔÚ¹¤×÷Çø¾ØĞÎÖĞ¾ÓÖĞ
+		// ä½¿å›¾æ ‡åœ¨å·¥ä½œåŒºçŸ©å½¢ä¸­å±…ä¸­
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -195,7 +199,7 @@ void CdataOpDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// »æÖÆÍ¼±ê
+		// ç»˜åˆ¶å›¾æ ‡
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -204,8 +208,8 @@ void CdataOpDlg::OnPaint()
 	}
 }
 
-//µ±ÓÃ»§ÍÏ¶¯×îĞ¡»¯´°¿ÚÊ±ÏµÍ³µ÷ÓÃ´Ëº¯ÊıÈ¡µÃ¹â±ê
-//ÏÔÊ¾¡£
+//å½“ç”¨æˆ·æ‹–åŠ¨æœ€å°åŒ–çª—å£æ—¶ç³»ç»Ÿè°ƒç”¨æ­¤å‡½æ•°å–å¾—å…‰æ ‡
+//æ˜¾ç¤ºã€‚
 HCURSOR CdataOpDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
@@ -255,7 +259,7 @@ void CdataOpDlg::OnLbnDblclkFilelist()
 	pList->GetSelItems(iCnt, listContent.GetData());
 
 	
-	if( IDYES == MessageBox(_T("È·ÈÏ²»´¦ÀíÕâĞ©ÎÄ¼şÂğ£¿"),_T("ÌáÊ¾"),MB_YESNO))
+	if( IDYES == MessageBox(_T("ç¡®è®¤ä¸å¤„ç†è¿™äº›æ–‡ä»¶å—ï¼Ÿ"),_T("æç¤º"),MB_YESNO))
 	{
 		for(int i=listContent.GetSize()-1; i>=0; i-- )
 		{
@@ -284,13 +288,13 @@ void CdataOpDlg::OnBnClickedOk()
 
 	if( 0 == iCnt )
 	{
-		AfxMessageBox(_T("ÇëÑ¡ÔñÖÁÉÙÒ»¸öÎÄ¼ş!"));
+		AfxMessageBox(_T("è¯·é€‰æ‹©è‡³å°‘ä¸€ä¸ªæ–‡ä»¶!"));
 		return ;
 	}
 
 	CString str ;
-	str.Format(_T("ÄúÒ»¹²Ñ¡ÔñÁË %d ¸öÎÄ¼ş£¬ÊÇ·ñ¿ªÊ¼´¦Àí£¿"),iCnt);
-	if( IDYES == MessageBox(str, _T("ÌáÊ¾"), MB_YESNO) )
+	str.Format(_T("æ‚¨ä¸€å…±é€‰æ‹©äº† %d ä¸ªæ–‡ä»¶ï¼Œæ˜¯å¦å¼€å§‹å¤„ç†ï¼Ÿ"),iCnt);
+	if( IDYES == MessageBox(str, _T("æç¤º"), MB_YESNO) )
 	{
 		MainProcess();
 	}
@@ -322,7 +326,7 @@ UINT CdataOpDlg::MainProcess( LPVOID lParam )
 		CString str;
 		pFileList->GetText(i,str);
 		/*AfxMessageBox(str);*/
-		pThis->SetDlgItemTextW(IDC_STATUS,_T("ÕıÔÚ´¦ÀíÎÄ¼ş ") + str + _T("...") );
+		pThis->SetDlgItemTextW(IDC_STATUS,_T("æ­£åœ¨å¤„ç†æ–‡ä»¶ ") + str + _T("...") );
 
 		CdataOpDlg::dealWith(str, pThis);
 	}
@@ -345,7 +349,7 @@ void CdataOpDlg::MainProcess(void )
 		CString str;
 		pFileList->GetText(i,str);
 		/*AfxMessageBox(str);*/
-		pThis->SetDlgItemTextW(IDC_STATUS,_T("ÕıÔÚ´¦ÀíÎÄ¼ş ") + str + _T("...") );
+		pThis->SetDlgItemTextW(IDC_STATUS,_T("æ­£åœ¨å¤„ç†æ–‡ä»¶ ") + str + _T("...") );
 		CdataOpDlg::dealWith(str, pThis);
 	}
 
@@ -357,24 +361,138 @@ void CdataOpDlg::ResetOutput()
 {
 	CListCtrl* plc = (CListCtrl*) this->GetDlgItem(IDC_OUTPUT);
 	plc->DeleteAllItems();
-// 	plc->InsertColumn( 0, _T("ID"), LVCFMT_LEFT, 40 );
-// 	plc->InsertColumn( 1, _T("NAME"), LVCFMT_LEFT, 50 );
-// 	plc->InsertColumn( 3, _T("NAME"), LVCFMT_LEFT, 50 );
-// 	plc->InsertColumn( 4, _T("NAME"), LVCFMT_LEFT, 50 );
+	plc->SetExtendedStyle(LVS_EX_ONECLICKACTIVATE|LVS_EX_GRIDLINES|LVS_EX_FULLROWSELECT);
+	CString str;
 
-	plc->InsertColumn( 0, _T("ID"));
-	plc->InsertColumn( 1, _T("NAME"));
-	plc->InsertColumn( 3, _T("a"));
-	plc->InsertColumn( 4, _T("NAME"));
-
-
-	int nRow = plc->InsertItem(0, _T("123333333"));
-	plc->SetItemText(nRow,1,_T("3333"));
-	plc->InsertItem(3, _T("123333334"));
-	plc->InsertItem(2, _T("123333335"));
+	for(int i=0; i<20; i++ )
+	{
+		str.Format(_T("%02d"),i+1 );
+		plc->InsertColumn( i, str, LVCFMT_CENTER, 40 );
+	}
 }
 
 void CdataOpDlg::DisPlay( vector<double> vd)
 {
+	CListCtrl* pList=(CListCtrl*) this->GetDlgItem(IDC_OUTPUT);
+	CString str;
 
+	int row = vd.size() /20 -1;
+	if( vd.size() %20 )
+	{
+		row += 1;
+	}
+	str.Format(_T("%.1lf"), vd[row*20] );
+	int nRow= pList->InsertItem(row,str );
+	for( int i=1; i<20 && row*20+i < vd.size(); i++ )
+	{
+		LV_ITEM lvitem = {0};
+		lvitem.mask = LVIF_TEXT;
+		lvitem.iItem = nRow;
+		lvitem.iSubItem = i;
+
+		str.Format(_T("%.1lf"), vd[row*20 +i] );
+		lvitem.pszText = str.GetBuffer();
+		pList->SetItem(&lvitem);
+		//pList->SetItemText(nRow, i+1, str);
+	}
+}
+
+void CdataOpDlg::OnNMClickOutput(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	
+	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
+	
+	CListCtrl* pList = (CListCtrl *) this->GetDlgItem(IDC_OUTPUT);
+	
+	if(pNMListView->iItem != -1)
+	{
+		CString strtemp;
+		strtemp.Format(_T("å•å‡»çš„æ˜¯ç¬¬%dè¡Œç¬¬%dåˆ—"),
+			pNMListView->iItem, pNMListView->iSubItem);
+		//AfxMessageBox(strtemp);
+	}
+	*pResult = 0;
+}
+
+
+void CdataOpDlg::OnNMDblclkOutput(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+
+	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
+
+	CListCtrl* pList = (CListCtrl *) this->GetDlgItem(IDC_OUTPUT);
+
+	if(pNMListView->iItem == -1)
+	{
+// 		CString strtemp;
+// 		strtemp.Format(_T("å•å‡»çš„æ˜¯ç¬¬%dè¡Œç¬¬%dåˆ—"),
+// 			pNMListView->iItem, pNMListView->iSubItem);
+// 		//AfxMessageBox(strtemp);
+		AfxMessageBox(_T("è·å–å•å…ƒæ ¼å¤±è´¥ï¼Œè¯·é‡è¯•"));
+		return ;
+	}
+
+
+
+	CModifyDlg pmd;
+	
+	if( IDOK == pmd.DoModal() )
+	{
+		
+	}
+
+	*pResult = 0;
+	
+}
+
+
+void CdataOpDlg::OnNMCustomdrawOutput(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	//AfxMessageBox(_T("çœŸçš„æ‰§è¡Œäº†"));
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	////////////////////////////////////////////////////////////////
+	NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);  
+	if ( CDDS_PREPAINT ==pLVCD->nmcd.dwDrawStage )  
+	{  
+		*pResult = CDRF_NOTIFYITEMDRAW;  
+	}  
+	else if ( CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage )  
+	{  
+		// This is the notification message for an item. We'll request  
+		// notifications before each subitem's prepaint stage.  
+
+		*pResult = CDRF_NOTIFYSUBITEMDRAW;  
+	}  
+	else if ( (CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pLVCD->nmcd.dwDrawStage )  
+	{  
+		int nItem=static_cast<int>(pLVCD->nmcd.dwItemSpec );  
+		switch(pLVCD->iSubItem)  
+		{  
+		case 2:      
+		case 4:      
+			{   
+				if (nItem % 2 == 0)  
+				{  
+
+					COLORREF clrNewTextColor, clrNewBkColor;  
+					clrNewTextColor = RGB(0,0,0);  
+					clrNewBkColor = RGB(255,0,0);  
+
+					pLVCD->clrText =clrNewTextColor;  
+					pLVCD->clrTextBk =clrNewBkColor;  
+					*pResult = CDRF_DODEFAULT;  
+					break;  
+				}  
+			}      
+		default:  
+			pLVCD->clrText = RGB(0,0,0);  
+			pLVCD->clrTextBk = RGB(255,255,255);  
+			*pResult = CDRF_DODEFAULT;  
+			break;  
+		}   
+	}  //////////////////////////////////////////////////
+
+	*pResult = 0;
 }

@@ -24,7 +24,7 @@ double CdataOpDlg::GetNumber(CString strNumber, CString strSplit, int *pos)
 // 	CString str;
 // 	str.Format(_T("%s\n"), szNumber);
 // 	AfxMessageBox(str);
-	return _tstoi(szNumber);
+	return _tstof(szNumber);
 }
 
 CString CdataOpDlg::VariantToCString(VARIANT var)
@@ -119,82 +119,108 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 	sheets.AttachDispatch(book.get_Sheets());
 
 	int n = sheets.get_Count();
-	
-	/*打开一个Sheet，如不存在，就新增一个Sheet*/
-	CString strSheetName = _T("NewSheet");
-	try
+	for(int sheet_cnt =1; sheet_cnt<=n; sheet_cnt ++)
 	{
-		/*打开一个已有的Sheet*/
-		lpDisp = sheets.get_Item(_variant_t(1));
-		sheet.AttachDispatch(lpDisp);
-	}
-	catch(...)
-	{
-		/*创建一个新的Sheet*/
-		AfxMessageBox(_T("工作表打开失败"));
-	}
+// 		CString shtcntstr;
+// 		shtcntstr.Format(_T("%d"), sheet_cnt);
+// 		AfxMessageBox(shtcntstr);
 
-	/*向Sheet中写入多个单元格,规模为10*10 */
-	lpDisp = sheet.get_UsedRange();
-	range.AttachDispatch(lpDisp);
-
-	range.put_NumberFormat(COleVariant(L"@"));
-	/*读取Excel表中的多个单元格的值，在listctrl中显示*/
-	VARIANT varRead = range.get_Value2();
-	COleSafeArray olesaRead(varRead);
-	
-	VARIANT varItem;
-	CString strItem;
-	long index[2] = {0, 0};
-	long lFirstLBound = 0;
-	long lFirstUBound = 0;
-	long lSecondLBound = 0;
-	long lSecondUBound = 0;
-	olesaRead.GetLBound(1, &lFirstLBound);
-	olesaRead.GetUBound(1, &lFirstUBound);
-	olesaRead.GetLBound(2, &lSecondLBound);
-	olesaRead.GetUBound(2, &lSecondUBound);
-	memset(index, 0, 2 * sizeof(long));
-
- 	CString sCount;
- 	sCount.Format(_T("一共%d %d %d %d "), 
- 			lFirstLBound, 
- 			lFirstUBound,
- 			lSecondLBound,
- 			lSecondUBound);
- 	AfxMessageBox(sCount);
-	int i,j;
-	for(i=57; i<lFirstUBound; i++)
-	{
-		index[0] = i;
-		for( j=8; j<=11; j++ )
+		/*打开一个Sheet，如不存在，就新增一个Sheet*/
+		CString strSheetName = _T("NewSheet");
+		try
 		{
+			/*打开一个已有的Sheet*/
+			lpDisp = sheets.get_Item(_variant_t(sheet_cnt));
 			
-			index[1] = j;
-			CString str;
-			
-			olesaRead.GetElement(index, &varItem);
-			str.Format(_T("%d"),varItem.vt);
-			str = VariantToCString(varItem);
-			str.TrimLeft();
-			str.TrimRight();
-			if( str != "" && str.GetLength() >0 )
+			sheet.AttachDispatch(lpDisp);
+			/*AfxMessageBox(sheet.get_Name());*/
+		}
+		catch(...)
+		{
+			/*创建一个新的Sheet*/
+			AfxMessageBox(_T("工作表打开失败"));
+		}
+
+		/*向Sheet中写入多个单元格,规模为10*10 */
+		lpDisp = sheet.get_UsedRange();
+		range.AttachDispatch(lpDisp);
+
+		range.put_NumberFormat(COleVariant(L"@"));
+		/*读取Excel表中的多个单元格的值，在listctrl中显示*/
+		VARIANT varRead = range.get_Value2();
+		COleSafeArray olesaRead(varRead);
+	
+		VARIANT varItem;
+		CString strItem;
+		long index[2] = {0, 0};
+		long lFirstLBound = 0;
+		long lFirstUBound = 0;
+		long lSecondLBound = 0;
+		long lSecondUBound = 0;
+		olesaRead.GetLBound(1, &lFirstLBound);
+		olesaRead.GetUBound(1, &lFirstUBound);
+		olesaRead.GetLBound(2, &lSecondLBound);
+		olesaRead.GetUBound(2, &lSecondUBound);
+		memset(index, 0, 2 * sizeof(long));
+
+	//  	CString sCount;
+	//  	sCount.Format(_T("一共%d %d %d %d "), 
+	//  			lFirstLBound, 
+	//  			lFirstUBound,
+	//  			lSecondLBound,
+	//  			lSecondUBound);
+	//  	AfxMessageBox(sCount);
+
+		int i,j;
+		for(i=lFirstLBound; i<lFirstUBound; i++)
+		{
+			index[0] = i;
+			for( j=8; j<=11; j++ )
 			{
-				int pos = 0;
-				str += " ";
-				while( pos < str.GetLength() )
+			
+				index[1] = j;
+				CString str;
+			
+				olesaRead.GetElement(index, &varItem);
+				str.Format(_T("%d"),varItem.vt);
+				str = VariantToCString(varItem);
+				
+				for(int strclri=0; strclri<str.GetLength(); strclri++ )
 				{
-					vDq.push_back( GetNumber(str, _T(" "),&pos) );
-					if( vDq.size() == 20 )
+					if( (str[strclri] < L'0' || str[strclri] > L'9') && str[strclri] != '.')
 					{
-						pThis->DisPlay( vDq );
+						str.SetAt(strclri,' ');
 					}
 				}
-				AfxMessageBox(str);
-			}	
+
+				str.TrimLeft();
+				str.TrimRight();
+				/*AfxMessageBox(str);*/
+				if( str != "" && str.GetLength() >0 )
+				{
+					
+					int pos = 0;
+					str += " ";
+					
+		
+					while( pos < str.GetLength() )
+					{
+						vDq.push_back( GetNumber(str, _T(" "),&pos) );
+						if( vDq.size() % 20 == 0 )
+						{
+							pThis->DisPlay( vDq );
+						}
+					}
+					
+				}	
+			}
 		}
 	}
-	
+	pThis->DisPlay( vDq );
+	CString str ;
+	str.Format(_T("%d"), vDq.size());
+	AfxMessageBox(str);
+
 	/*释放资源*/
 	sheet.ReleaseDispatch();
 	sheets.ReleaseDispatch();

@@ -61,4 +61,7 @@ public:
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCancel();
+	afx_msg void OnNMClickOutput(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMDblclkOutput(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMCustomdrawOutput(NMHDR *pNMHDR, LRESULT *pResult);
 };
