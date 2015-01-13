@@ -542,8 +542,6 @@ void CdataOpDlg::saveAs( vector<double> &vd )
 	olesaWrite.GetLBound(1, &lFirstLBound);
 	olesaWrite.GetUBound(1, &lFirstUBound);
 
-	
-
 	index[0] = 1;
 	for (long i = lFirstLBound; i <= lFirstUBound && i<vd.size()%20; i++)
 	{
