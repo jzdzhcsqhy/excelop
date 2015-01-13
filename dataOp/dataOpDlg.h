@@ -8,6 +8,7 @@
 #include <queue>
 
 #include "resource.h"
+#include <fstream>
 using namespace std;
 
 // CdataOpDlg ¶Ô»°¿ò
@@ -42,12 +43,17 @@ private:
 	CWinThread* m_pthMainProcess;
 	CApplication m_ExcelApp;
 	CWorkbooks m_books;
+	bool		m_bIsExcel;
+
+	CString		m_strCurBook;
+	CString		m_strCurSheet;
 
 public:
 	void refreshListBox();
+	void DisPlay( vector<double> vd, CString sheetname);
 	void DisPlay( vector<double> vd);
 	void ResetOutput( void );
-
+	void CdataOpDlg::saveAs( vector<double> &vd );
 	static UINT MainProcess( LPVOID lParam );
 	void MainProcess(void );
 	static void dealWith( const CString &filename, CdataOpDlg* p);
@@ -64,4 +70,5 @@ public:
 	afx_msg void OnNMClickOutput(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMDblclkOutput(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNMCustomdrawOutput(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnBnClickedExport();
 };

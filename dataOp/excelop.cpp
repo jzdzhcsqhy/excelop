@@ -97,10 +97,12 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 
 	/*打开一个工作簿，如不存在，则新增一个工作簿*/
 	CString strBookPath = pThis->m_strPath + "\\" + filename;
+	CString strOutBookPath = pThis->m_strPath +"\\rs_" +filename; 
 	try
 	{
 		/*打开一个工作簿*/
 		AfxMessageBox(_T("Open " + filename ));
+		pThis->m_strCurBook = filename;
 		lpDisp = pThis->m_books.Open(strBookPath, 
 			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing,
 			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing, 
@@ -126,7 +128,7 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 // 		AfxMessageBox(shtcntstr);
 
 		/*打开一个Sheet，如不存在，就新增一个Sheet*/
-		CString strSheetName = _T("NewSheet");
+		vDq.clear();
 		try
 		{
 			/*打开一个已有的Sheet*/
@@ -134,6 +136,7 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 			
 			sheet.AttachDispatch(lpDisp);
 			/*AfxMessageBox(sheet.get_Name());*/
+			pThis->m_strCurSheet = sheet.get_Name();
 		}
 		catch(...)
 		{
@@ -215,8 +218,9 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 				}	
 			}
 		}
+		pThis->DisPlay( vDq );
 	}
-	pThis->DisPlay( vDq );
+	
 	CString str ;
 	str.Format(_T("%d"), vDq.size());
 	AfxMessageBox(str);

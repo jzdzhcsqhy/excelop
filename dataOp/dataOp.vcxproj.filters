@@ -42,9 +42,6 @@
     <ClInclude Include="..\ExcelOp\excel9.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ModifyDlg.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dataOp.cpp">
@@ -60,9 +57,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="excelop.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ModifyDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

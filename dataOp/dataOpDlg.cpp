@@ -7,7 +7,6 @@
 #include "dataOpDlg.h"
 #include "afxdialogex.h"
 #include "excel9.h"
-#include "ModifyDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -72,9 +71,7 @@ BEGIN_MESSAGE_MAP(CdataOpDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON2, &CdataOpDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDOK, &CdataOpDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDCANCEL, &CdataOpDlg::OnBnClickedCancel)
-	ON_NOTIFY(NM_CLICK, IDC_OUTPUT, &CdataOpDlg::OnNMClickOutput)
-	ON_NOTIFY(NM_DBLCLK, IDC_OUTPUT, &CdataOpDlg::OnNMDblclkOutput)
-	ON_NOTIFY(NM_CUSTOMDRAW, IDC_OUTPUT, &CdataOpDlg::OnNMCustomdrawOutput)
+	ON_BN_CLICKED(IDC_EXPORT, &CdataOpDlg::OnBnClickedExport)
 END_MESSAGE_MAP()
 
 
@@ -161,7 +158,7 @@ BOOL CdataOpDlg::OnInitDialog()
 	/*得到工作簿容器*/
 	this->m_books.AttachDispatch(this->m_ExcelApp.get_Workbooks());
 
-	ResetOutput();
+	this->m_bIsExcel = true;
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -308,6 +305,9 @@ void CdataOpDlg::OnBnClickedOk()
 
 void CdataOpDlg::OnBnClickedCancel()
 {
+	this->m_books.ReleaseDispatch();
+	this->m_ExcelApp.Quit();
+	this->m_ExcelApp.ReleaseDispatch();
 	CDialogEx::OnCancel();
 }
 
@@ -318,17 +318,13 @@ UINT CdataOpDlg::MainProcess( LPVOID lParam )
 
 	CWnd* pStatus = pThis->GetDlgItem(IDC_STATUS);
 	CListBox* pFileList =(CListBox* ) pThis->GetDlgItem(IDC_FILELIST);
-	CListCtrl* pOutput =(CListCtrl* ) pThis->GetDlgItem(IDC_OUTPUT);
 
 	int iCnt = pFileList->GetCount();
 	for(int i=0; i<iCnt; i++ )
 	{
 		CString str;
 		pFileList->GetText(i,str);
-		/*AfxMessageBox(str);*/
 		pThis->SetDlgItemTextW(IDC_STATUS,_T("正在处理文件 ") + str + _T("...") );
-
-		CdataOpDlg::dealWith(str, pThis);
 	}
 
 
@@ -341,15 +337,12 @@ void CdataOpDlg::MainProcess(void )
 
 	CWnd* pStatus = pThis->GetDlgItem(IDC_STATUS);
 	CListBox* pFileList =(CListBox* ) pThis->GetDlgItem(IDC_FILELIST);
-	CListCtrl* pOutput =(CListCtrl* ) pThis->GetDlgItem(IDC_OUTPUT);
 
 	int iCnt = pFileList->GetCount();
 	for(int i=0; i<iCnt; i++ )
 	{
 		CString str;
 		pFileList->GetText(i,str);
-		/*AfxMessageBox(str);*/
-		pThis->SetDlgItemTextW(IDC_STATUS,_T("正在处理文件 ") + str + _T("...") );
 		CdataOpDlg::dealWith(str, pThis);
 	}
 
@@ -359,140 +352,218 @@ void CdataOpDlg::MainProcess(void )
 
 void CdataOpDlg::ResetOutput()
 {
-	CListCtrl* plc = (CListCtrl*) this->GetDlgItem(IDC_OUTPUT);
-	plc->DeleteAllItems();
-	plc->SetExtendedStyle(LVS_EX_ONECLICKACTIVATE|LVS_EX_GRIDLINES|LVS_EX_FULLROWSELECT);
-	CString str;
-
-	for(int i=0; i<20; i++ )
-	{
-		str.Format(_T("%02d"),i+1 );
-		plc->InsertColumn( i, str, LVCFMT_CENTER, 40 );
-	}
 }
+// 
+// void CdataOpDlg::DisPlay( vector<double> vd)
+// {
+// 	CListCtrl* pList=(CListCtrl*) this->GetDlgItem(IDC_OUTPUT);
+// 	CString str;
+// 
+// 	int row = vd.size() /20 -1;
+// 	if( vd.size() %20 )
+// 	{
+// 		row += 1;
+// 	}
+// 	str.Format(_T(FORMAT_STRING ), vd[row*20] );
+// 	int nRow= pList->InsertItem(row,str );
+// 	for( int i=1; i<20 && row*20+i < vd.size(); i++ )
+// 	{
+// 		LV_ITEM lvitem = {0};
+// 		lvitem.mask = LVIF_TEXT;
+// 		lvitem.iItem = nRow;
+// 		lvitem.iSubItem = i;
+// 
+// 		str.Format(_T(FORMAT_STRING ), vd[row*20 +i] );
+// 		lvitem.pszText = str.GetBuffer();
+// 		pList->SetItem(&lvitem);
+// 		//pList->SetItemText(nRow, i+1, str);
+// 	}
+// }
 
 void CdataOpDlg::DisPlay( vector<double> vd)
 {
-	CListCtrl* pList=(CListCtrl*) this->GetDlgItem(IDC_OUTPUT);
-	CString str;
+	if( !this->m_bIsExcel )
+	{
+		CString name =  this->m_strCurBook+"_"+this->m_strCurSheet+".txt";
+		this->DisPlay(vd, name);
+		return ;
+	}
+
+	this->saveAs(vd);
+
+
+}
+
+void CdataOpDlg::DisPlay( vector<double> vd, CString sheetname)
+{
+	FILE* fp;
+	if( NULL == ( fp = fopen(CT2A(sheetname), "a+")))
+	{
+		AfxMessageBox(_T("打开文件失败"));
+		return ;
+	}
+
 
 	int row = vd.size() /20 -1;
 	if( vd.size() %20 )
 	{
 		row += 1;
 	}
-	str.Format(_T("%.1lf"), vd[row*20] );
-	int nRow= pList->InsertItem(row,str );
-	for( int i=1; i<20 && row*20+i < vd.size(); i++ )
+	for( int i=0; i<20 && row*20+i < vd.size(); i++ )
 	{
-		LV_ITEM lvitem = {0};
-		lvitem.mask = LVIF_TEXT;
-		lvitem.iItem = nRow;
-		lvitem.iSubItem = i;
-
-		str.Format(_T("%.1lf"), vd[row*20 +i] );
-		lvitem.pszText = str.GetBuffer();
-		pList->SetItem(&lvitem);
-		//pList->SetItemText(nRow, i+1, str);
+		fprintf(fp,FORMAT_STRING, vd[row*20 +i ]);
+		if( i != 19 && row *20 +i != vd.size() -1 )
+		{
+			fprintf(fp, " ");
+		}
 	}
+	fprintf(fp, "\n");
+	fclose(fp);
 }
 
 void CdataOpDlg::OnNMClickOutput(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	
-	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
-	
-	CListCtrl* pList = (CListCtrl *) this->GetDlgItem(IDC_OUTPUT);
-	
-	if(pNMListView->iItem != -1)
-	{
-		CString strtemp;
-		strtemp.Format(_T("单击的是第%d行第%d列"),
-			pNMListView->iItem, pNMListView->iSubItem);
-		//AfxMessageBox(strtemp);
-	}
 	*pResult = 0;
 }
 
 
 void CdataOpDlg::OnNMDblclkOutput(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-
-	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
-
-	CListCtrl* pList = (CListCtrl *) this->GetDlgItem(IDC_OUTPUT);
-
-	if(pNMListView->iItem == -1)
-	{
-// 		CString strtemp;
-// 		strtemp.Format(_T("单击的是第%d行第%d列"),
-// 			pNMListView->iItem, pNMListView->iSubItem);
-// 		//AfxMessageBox(strtemp);
-		AfxMessageBox(_T("获取单元格失败，请重试"));
-		return ;
-	}
-
-
-
-	CModifyDlg pmd;
-	
-	if( IDOK == pmd.DoModal() )
-	{
-		
-	}
-
-	*pResult = 0;
 	
 }
 
 
 void CdataOpDlg::OnNMCustomdrawOutput(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	//AfxMessageBox(_T("真的执行了"));
-	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
-	////////////////////////////////////////////////////////////////
-	NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);  
-	if ( CDDS_PREPAINT ==pLVCD->nmcd.dwDrawStage )  
-	{  
-		*pResult = CDRF_NOTIFYITEMDRAW;  
-	}  
-	else if ( CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage )  
-	{  
-		// This is the notification message for an item. We'll request  
-		// notifications before each subitem's prepaint stage.  
+	
+}
 
-		*pResult = CDRF_NOTIFYSUBITEMDRAW;  
-	}  
-	else if ( (CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pLVCD->nmcd.dwDrawStage )  
-	{  
-		int nItem=static_cast<int>(pLVCD->nmcd.dwItemSpec );  
-		switch(pLVCD->iSubItem)  
-		{  
-		case 2:      
-		case 4:      
-			{   
-				if (nItem % 2 == 0)  
-				{  
 
-					COLORREF clrNewTextColor, clrNewBkColor;  
-					clrNewTextColor = RGB(0,0,0);  
-					clrNewBkColor = RGB(255,0,0);  
+void CdataOpDlg::OnBnClickedExport()
+{
+	if(this->m_bIsExcel )
+	{
+		this->m_bIsExcel = !this->m_bIsExcel;
+		this->SetDlgItemTextW(IDC_EXPORT,_T("导出TXT"));
+	}
+	else
+	{
+		this->SetDlgItemTextW(IDC_EXPORT,_T("导出EXCEL"));
+		this->m_bIsExcel = !this->m_bIsExcel;
+	}
+}
 
-					pLVCD->clrText =clrNewTextColor;  
-					pLVCD->clrTextBk =clrNewBkColor;  
-					*pResult = CDRF_DODEFAULT;  
-					break;  
-				}  
-			}      
-		default:  
-			pLVCD->clrText = RGB(0,0,0);  
-			pLVCD->clrTextBk = RGB(255,255,255);  
-			*pResult = CDRF_DODEFAULT;  
-			break;  
-		}   
-	}  //////////////////////////////////////////////////
 
-	*pResult = 0;
+void CdataOpDlg::saveAs( vector<double> &vd )
+{
+	int row = vd.size()/20 -1;
+
+
+	CWorkbook book;
+	CWorksheets sheets;
+	CWorksheet sheet;
+	CRange range;
+	LPDISPATCH lpDisp = NULL;
+	
+	CString filename = this->m_strCurBook+"_"+this->m_strCurSheet+".xls";
+
+	try
+	{
+		/*打开一个工作簿*/
+		lpDisp = this->m_books.Open(filename, 
+			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing,
+			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing, 
+			vtMissing, vtMissing, vtMissing, vtMissing);
+		book.AttachDispatch(lpDisp);
+	}
+	catch(...)
+	{
+		/*增加一个新的工作簿*/
+		lpDisp = this->m_books.Add(vtMissing);
+		book.AttachDispatch(lpDisp);
+	}
+
+
+	/*得到工作簿中的Sheet的容器*/
+	sheets.AttachDispatch(book.get_Sheets());
+	
+	CString newsht = _T("sht1");
+	lpDisp = sheets.Add(vtMissing, vtMissing, _variant_t((long)1), vtMissing);
+	sheet.AttachDispatch(lpDisp);
+	sheet.put_Name(newsht);
+
+	lpDisp = sheet.get_UsedRange();
+	range.AttachDispatch(lpDisp);
+	VARIANT varRead = range.get_Value2();
+	int iIndex = 1;
+
+	if( varRead.vt != VT_EMPTY )
+	{
+		COleSafeArray olesaRead(varRead);
+
+		VARIANT varItem;
+
+		long lSecondLBound = 0;
+		long lSecondUBound = 0;
+		olesaRead.GetLBound(2, &lSecondLBound);
+		olesaRead.GetUBound(2, &lSecondUBound);
+		iIndex = lSecondUBound - lSecondLBound +1;
+	}
+	CString strs, stre;
+	strs.Format(_T("A%d"), iIndex);
+	stre.Format(_T("T%d"), iIndex);
+
+	lpDisp = sheet.get_Range(_variant_t( strs ),_variant_t( stre ) );
+	range.AttachDispatch(lpDisp);
+	
+
+	VARTYPE vt = VT_BSTR; 
+	SAFEARRAYBOUND sabWrite[1]; /*用于定义数组的维数和下标的起始值*/
+	sabWrite[0].cElements = 10;
+	sabWrite[0].lLbound = 0;
+
+	COleSafeArray olesaWrite;
+	olesaWrite.Create(vt, sizeof(sabWrite)/sizeof(SAFEARRAYBOUND), sabWrite);
+
+	/*通过指向数组的指针来对二维数组的元素进行间接赋值*/
+	long (*pArray)[2] = NULL;
+	olesaWrite.AccessData((void **)&pArray);
+	memset(pArray, 0, sabWrite[0].cElements * sizeof(CString));
+
+	/*释放指向数组的指针*/
+	olesaWrite.UnaccessData();
+	pArray = NULL;
+
+	/*对二维数组的元素进行逐个赋值*/
+	long index[2] = {0, 0};
+	long lFirstLBound = 1;
+	long lFirstUBound = 1;
+	olesaWrite.GetLBound(1, &lFirstLBound);
+	olesaWrite.GetUBound(1, &lFirstUBound);
+
+	
+
+	index[0] = 1;
+	for (long i = lFirstLBound; i <= lFirstUBound && i<vd.size()%20; i++)
+	{
+		index[1] = i;
+		CString sElement;
+		int t;
+		double db = vd[row*20+i];
+		sElement.Format(_T(FORMAT_STRING), vd[row*20 +i]);
+		olesaWrite.PutElement(index, &sElement);
+	}
+
+
+	/*把ColesaWritefeArray变量转换为VARIANT,并写入到Excel表格中*/
+	VARIANT varWrite = (VARIANT)olesaWrite;
+	range.put_Value2(varWrite);
+
+	book.Save();
+
+	/*释放资源*/
+	sheet.ReleaseDispatch();
+	sheets.ReleaseDispatch();
+	book.ReleaseDispatch();
 }
