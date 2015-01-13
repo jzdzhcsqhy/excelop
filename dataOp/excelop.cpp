@@ -93,26 +93,32 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 	vector<double> vDq;
 	vDq.clear();
 	
+	CListBox* pList = (CListBox*) pThis->GetDlgItem(IDC_RS);
+	CString rs;
 	
 
 	/*打开一个工作簿，如不存在，则新增一个工作簿*/
 	CString strBookPath = pThis->m_strPath + "\\" + filename;
 	CString strOutBookPath = pThis->m_strPath +"\\rs_" +filename; 
+	rs = filename + _T(" 处理开始。。");
+	pList->AddString(rs);
 	try
 	{
 		/*打开一个工作簿*/
-		AfxMessageBox(_T("Open " + filename ));
 		pThis->m_strCurBook = filename;
 		lpDisp = pThis->m_books.Open(strBookPath, 
 			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing,
 			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing, 
 			vtMissing, vtMissing, vtMissing, vtMissing);
 		book.AttachDispatch(lpDisp);
+		rs = pThis->m_strCurBook + _T(" 打开成功");
+		pList->AddString(rs);
 	}
 	catch(...)
 	{
-		/*增加一个新的工作簿*/
-		AfxMessageBox(filename+ _T("无法打开，已经跳过"));
+	
+		rs = pThis->m_strCurBook + _T(" 打开错误，跳过");
+		pList->AddString(rs);
 		return;
 	}
 
@@ -137,11 +143,15 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 			sheet.AttachDispatch(lpDisp);
 			/*AfxMessageBox(sheet.get_Name());*/
 			pThis->m_strCurSheet = sheet.get_Name();
+			//pThis->m_strCurSheet.Format(_T("%d"), sheet_cnt);
+			rs = pThis->m_strCurSheet + _T(" 打开成功");
+			pList->AddString(rs);
 		}
 		catch(...)
 		{
 			/*创建一个新的Sheet*/
-			AfxMessageBox(_T("工作表打开失败"));
+			rs = pThis->m_strCurSheet + _T(" 打开错误，跳过");
+			pList->AddString(rs);
 		}
 
 		/*向Sheet中写入多个单元格,规模为10*10 */
@@ -219,11 +229,15 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 			}
 		}
 		pThis->DisPlay( vDq );
+		rs = pThis->m_strCurSheet + _T(" 处理完成");
+		pList->AddString(rs);
 	}
-	
-	CString str ;
-	str.Format(_T("%d"), vDq.size());
-	AfxMessageBox(str);
+
+	rs = pThis->m_strCurBook + _T(" 处理完成");
+	pList->AddString(rs);
+// 	CString str ;
+// 	str.Format(_T("%d"), vDq.size());
+// 	AfxMessageBox(str);
 
 	/*释放资源*/
 	sheet.ReleaseDispatch();

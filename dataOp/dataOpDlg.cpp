@@ -7,6 +7,9 @@
 #include "dataOpDlg.h"
 #include "afxdialogex.h"
 #include "excel9.h"
+#include <atlbase.h>
+#include <atlstr.h>
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -158,7 +161,7 @@ BOOL CdataOpDlg::OnInitDialog()
 	/*得到工作簿容器*/
 	this->m_books.AttachDispatch(this->m_ExcelApp.get_Workbooks());
 
-	this->m_bIsExcel = true;
+	this->m_bIsExcel = false;
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -294,6 +297,7 @@ void CdataOpDlg::OnBnClickedOk()
 	if( IDYES == MessageBox(str, _T("提示"), MB_YESNO) )
 	{
 		MainProcess();
+		AfxMessageBox(_T("处理完成"));
 	}
 	else
 	{
@@ -384,7 +388,7 @@ void CdataOpDlg::DisPlay( vector<double> vd)
 {
 	if( !this->m_bIsExcel )
 	{
-		CString name =  this->m_strCurBook+"_"+this->m_strCurSheet+".txt";
+		CString name =  this->m_strPath+"\\"+this->m_strCurBook+"_"+this->m_strCurSheet+".txt";
 		this->DisPlay(vd, name);
 		return ;
 	}
@@ -397,9 +401,13 @@ void CdataOpDlg::DisPlay( vector<double> vd)
 void CdataOpDlg::DisPlay( vector<double> vd, CString sheetname)
 {
 	FILE* fp;
+
 	if( NULL == ( fp = fopen(CT2A(sheetname), "a+")))
 	{
-		AfxMessageBox(_T("打开文件失败"));
+		CString str;
+		str.Format(_T("%S %d"), CT2A(sheetname),GetLastError() );
+		AfxMessageBox(_T("打开文件失败")+sheetname+" " +str);
+		GetLastError();
 		return ;
 	}
 
