@@ -97,6 +97,7 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 	CString rs;
 	
 
+
 	/*打开一个工作簿，如不存在，则新增一个工作簿*/
 	CString strBookPath = pThis->m_strPath + "\\" + filename;
 	CString strOutBookPath = pThis->m_strPath +"\\rs_" +filename; 
@@ -242,6 +243,5 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 	/*释放资源*/
 	sheet.ReleaseDispatch();
 	sheets.ReleaseDispatch();
-	book.ReleaseDispatch();
 }
 

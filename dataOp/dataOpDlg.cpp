@@ -157,7 +157,6 @@ BOOL CdataOpDlg::OnInitDialog()
 	}
 
 	this->m_ExcelApp.put_UserControl(FALSE);
-
 	/*得到工作簿容器*/
 	this->m_books.AttachDispatch(this->m_ExcelApp.get_Workbooks());
 
@@ -310,6 +309,7 @@ void CdataOpDlg::OnBnClickedOk()
 void CdataOpDlg::OnBnClickedCancel()
 {
 	this->m_books.ReleaseDispatch();
+	this->m_books.Close();
 	this->m_ExcelApp.Quit();
 	this->m_ExcelApp.ReleaseDispatch();
 	CDialogEx::OnCancel();
@@ -467,20 +467,25 @@ void CdataOpDlg::saveAs( vector<double> &vd )
 {
 	int row = vd.size()/20 -1;
 
-
+	XlFileFormat format = xlExcel8;
+	
+	CWorkbooks newb;
 	CWorkbook book;
 	CWorksheets sheets;
 	CWorksheet sheet;
 	CRange range;
 	LPDISPATCH lpDisp = NULL;
 	
-	CString filename = this->m_strCurBook+"_"+this->m_strCurSheet+".xls";
+	CString filename = this->m_strPath + "\\" + 
+						this->m_strCurBook+"_"+this->m_strCurSheet+".xls";
+	/*得到工作簿容器*/
+	newb.AttachDispatch(this->m_ExcelApp.get_Workbooks());
 
 	try
 	{
 		/*打开一个工作簿*/
-		lpDisp = this->m_books.Open(filename, 
-			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing,
+		lpDisp = newb.Open(filename, 
+			vtMissing, _variant_t(false),vtMissing, vtMissing, vtMissing,
 			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing, 
 			vtMissing, vtMissing, vtMissing, vtMissing);
 		book.AttachDispatch(lpDisp);
@@ -488,8 +493,11 @@ void CdataOpDlg::saveAs( vector<double> &vd )
 	catch(...)
 	{
 		/*增加一个新的工作簿*/
-		lpDisp = this->m_books.Add(vtMissing);
+		lpDisp = newb.Add(vtMissing);
 		book.AttachDispatch(lpDisp);
+		XlSaveConflictResolution xlscr = xlLocalSessionChanges;
+		book.SaveAs(_variant_t(filename),_variant_t((long)format),vtMissing,vtMissing,vtMissing,
+			vtMissing,0,_variant_t((long)xlscr),vtMissing,vtMissing,vtMissing,vtMissing);
 	}
 
 
@@ -497,26 +505,26 @@ void CdataOpDlg::saveAs( vector<double> &vd )
 	sheets.AttachDispatch(book.get_Sheets());
 	
 	CString newsht = _T("sht1");
-	lpDisp = sheets.Add(vtMissing, vtMissing, _variant_t((long)1), vtMissing);
+	lpDisp = sheets.get_Item(_variant_t(1));
 	sheet.AttachDispatch(lpDisp);
-	sheet.put_Name(newsht);
+//	sheet.put_Name(newsht);
 
 	lpDisp = sheet.get_UsedRange();
 	range.AttachDispatch(lpDisp);
 	VARIANT varRead = range.get_Value2();
 	int iIndex = 1;
-
+	long lSecondLBound = 0;
+	long lSecondUBound = 0;
 	if( varRead.vt != VT_EMPTY )
 	{
 		COleSafeArray olesaRead(varRead);
 
 		VARIANT varItem;
 
-		long lSecondLBound = 0;
-		long lSecondUBound = 0;
+		
 		olesaRead.GetLBound(2, &lSecondLBound);
 		olesaRead.GetUBound(2, &lSecondUBound);
-		iIndex = lSecondUBound - lSecondLBound +1;
+		iIndex = lSecondUBound - lSecondLBound +1 +1;
 	}
 	CString strs, stre;
 	strs.Format(_T("A%d"), iIndex);
@@ -528,7 +536,7 @@ void CdataOpDlg::saveAs( vector<double> &vd )
 
 	VARTYPE vt = VT_BSTR; 
 	SAFEARRAYBOUND sabWrite[1]; /*用于定义数组的维数和下标的起始值*/
-	sabWrite[0].cElements = 10;
+	sabWrite[0].cElements = 20;
 	sabWrite[0].lLbound = 0;
 
 	COleSafeArray olesaWrite;
@@ -537,7 +545,7 @@ void CdataOpDlg::saveAs( vector<double> &vd )
 	/*通过指向数组的指针来对二维数组的元素进行间接赋值*/
 	long (*pArray)[2] = NULL;
 	olesaWrite.AccessData((void **)&pArray);
-	memset(pArray, 0, sabWrite[0].cElements * sizeof(CString));
+	memset(pArray, 0, sabWrite[0].cElements * sizeof(long));
 
 	/*释放指向数组的指针*/
 	olesaWrite.UnaccessData();
@@ -566,10 +574,14 @@ void CdataOpDlg::saveAs( vector<double> &vd )
 	VARIANT varWrite = (VARIANT)olesaWrite;
 	range.put_Value2(varWrite);
 
-	book.Save();
 
+	//XlSaveConflictResolution xlscr = xlLocalSessionChanges;
+	
 	/*释放资源*/
+	//AfxMessageBox(filename);
+
 	sheet.ReleaseDispatch();
 	sheets.ReleaseDispatch();
+	//book.Close(_variant_t(true),_variant_t(filename),vtMissing);
 	book.ReleaseDispatch();
 }
