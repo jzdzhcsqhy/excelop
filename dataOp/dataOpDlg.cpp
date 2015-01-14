@@ -130,6 +130,7 @@ BOOL CdataOpDlg::OnInitDialog()
 	if(!this->m_ExcelApp.CreateDispatch(_T("Excel.Application")) )
 	{
 		AfxMessageBox(_T("启动Excel服务器失败!"));
+		CDialogEx::OnCancel();
 		return FALSE;
 	}
 
@@ -222,14 +223,14 @@ void CdataOpDlg::OnEnChangeSelectfile()
 	CString path;
 
 	this->m_vFileList.clear();
-	this->GetDlgItemTextW(IDC_SELECTFILE, this->m_strPath);
+	this->GetDlgItemTextA(IDC_SELECTFILE, this->m_strPath);
 
 	path = this->m_strPath + _T("\\*.xls");
 
 	bool isExist = fileFinder.FindFile(path);
 	while( isExist )
 	{
-		isExist = fileFinder.FindNextFileW();
+		isExist = fileFinder.FindNextFileA();
 		this->m_vFileList.push_back(fileFinder.GetFileName());
 		refreshListBox();
 	}
@@ -296,6 +297,7 @@ void CdataOpDlg::OnBnClickedOk()
 	if( IDYES == MessageBox(str, _T("提示"), MB_YESNO) )
 	{
 		MainProcess();
+		//this->m_pthMainProcess = AfxBeginThread(CdataOpDlg::MainProcess,this);
 		AfxMessageBox(_T("处理完成"));
 	}
 	else
@@ -328,7 +330,8 @@ UINT CdataOpDlg::MainProcess( LPVOID lParam )
 	{
 		CString str;
 		pFileList->GetText(i,str);
-		pThis->SetDlgItemTextW(IDC_STATUS,_T("正在处理文件 ") + str + _T("...") );
+		pThis->SetDlgItemTextA(IDC_STATUS,_T("正在处理文件 ") + str + _T("...") );
+		CdataOpDlg::dealWith(str, pThis);
 	}
 
 
@@ -347,7 +350,9 @@ void CdataOpDlg::MainProcess(void )
 	{
 		CString str;
 		pFileList->GetText(i,str);
+		pThis->SetDlgItemTextA(IDC_STATUS,_T("正在处理文件 ") + str + _T("...") );
 		CdataOpDlg::dealWith(str, pThis);
+
 	}
 
 
@@ -453,11 +458,11 @@ void CdataOpDlg::OnBnClickedExport()
 	if(this->m_bIsExcel )
 	{
 		this->m_bIsExcel = !this->m_bIsExcel;
-		this->SetDlgItemTextW(IDC_EXPORT,_T("导出TXT"));
+		this->SetDlgItemTextA(IDC_EXPORT,_T("导出TXT"));
 	}
 	else
 	{
-		this->SetDlgItemTextW(IDC_EXPORT,_T("导出EXCEL"));
+		this->SetDlgItemTextA(IDC_EXPORT,_T("导出EXCEL"));
 		this->m_bIsExcel = !this->m_bIsExcel;
 	}
 }
@@ -465,123 +470,52 @@ void CdataOpDlg::OnBnClickedExport()
 
 void CdataOpDlg::saveAs( vector<double> &vd )
 {
-	int row = vd.size()/20 -1;
-
-	XlFileFormat format = xlExcel8;
+	//CString filename = this->m_strPath+"\\rs_"+this->m_strCurBook;
+	CString filename = this->m_strPath+"\\"+this->m_strCurBook+"___"+this->m_strCurSheet+".xls";
+// 
+// 	CString shtnm = this->m_strCurSheet;
+// 
+// 	for( int j=0; j<shtnm.GetLength(); j++ )
+// 	{
+// 		if(L' ' == shtnm.GetAt(j) )
+// 		{
+// 			shtnm.SetAt(j,L'0');
+// 		}
+// 	}
+	CSpreadSheet newxls(filename,"sheet1");
 	
-	CWorkbooks newb;
-	CWorkbook book;
-	CWorksheets sheets;
-	CWorksheet sheet;
-	CRange range;
-	LPDISPATCH lpDisp = NULL;
-	
-	CString filename = this->m_strPath + "\\" + 
-						this->m_strCurBook+"_"+this->m_strCurSheet+".xls";
-	/*得到工作簿容器*/
-	newb.AttachDispatch(this->m_ExcelApp.get_Workbooks());
+	int i;
+	CStringArray row;
+	row.RemoveAll();
 
-	try
+	for(int i =0; i<20; i++ )
 	{
-		/*打开一个工作簿*/
-		lpDisp = newb.Open(filename, 
-			vtMissing, _variant_t(false),vtMissing, vtMissing, vtMissing,
-			vtMissing, vtMissing, vtMissing, vtMissing, vtMissing, 
-			vtMissing, vtMissing, vtMissing, vtMissing);
-		book.AttachDispatch(lpDisp);
-	}
-	catch(...)
-	{
-		/*增加一个新的工作簿*/
-		lpDisp = newb.Add(vtMissing);
-		book.AttachDispatch(lpDisp);
-		XlSaveConflictResolution xlscr = xlLocalSessionChanges;
-		book.SaveAs(_variant_t(filename),_variant_t((long)format),vtMissing,vtMissing,vtMissing,
-			vtMissing,0,_variant_t((long)xlscr),vtMissing,vtMissing,vtMissing,vtMissing);
+		CString str;
+		str.Format("第%d列", i+1);
+		row.Add(str);
 	}
 
+	newxls.AddHeaders(row);
+	newxls.BeginTransaction();
+	row.RemoveAll();
+	int iCnt =2;
 
-	/*得到工作簿中的Sheet的容器*/
-	sheets.AttachDispatch(book.get_Sheets());
-	
-	CString newsht = _T("sht1");
-	lpDisp = sheets.get_Item(_variant_t(1));
-	sheet.AttachDispatch(lpDisp);
-//	sheet.put_Name(newsht);
-
-	lpDisp = sheet.get_UsedRange();
-	range.AttachDispatch(lpDisp);
-	VARIANT varRead = range.get_Value2();
-	int iIndex = 1;
-	long lSecondLBound = 0;
-	long lSecondUBound = 0;
-	if( varRead.vt != VT_EMPTY )
+	for( i=0; i<vd.size(); i++ )
 	{
-		COleSafeArray olesaRead(varRead);
-
-		VARIANT varItem;
-
-		
-		olesaRead.GetLBound(2, &lSecondLBound);
-		olesaRead.GetUBound(2, &lSecondUBound);
-		iIndex = lSecondUBound - lSecondLBound +1 +1;
+		CString str;
+		str.Format(FORMAT_STRING, vd[i] );
+		row.Add(str);
+		if( 20 == row.GetSize() )
+		{
+			
+			newxls.AddRow(row,iCnt++, true);
+			row.RemoveAll();
+			
+		}
 	}
-	CString strs, stre;
-	strs.Format(_T("A%d"), iIndex);
-	stre.Format(_T("T%d"), iIndex);
-
-	lpDisp = sheet.get_Range(_variant_t( strs ),_variant_t( stre ) );
-	range.AttachDispatch(lpDisp);
-	
-
-	VARTYPE vt = VT_BSTR; 
-	SAFEARRAYBOUND sabWrite[1]; /*用于定义数组的维数和下标的起始值*/
-	sabWrite[0].cElements = 20;
-	sabWrite[0].lLbound = 0;
-
-	COleSafeArray olesaWrite;
-	olesaWrite.Create(vt, sizeof(sabWrite)/sizeof(SAFEARRAYBOUND), sabWrite);
-
-	/*通过指向数组的指针来对二维数组的元素进行间接赋值*/
-	long (*pArray)[2] = NULL;
-	olesaWrite.AccessData((void **)&pArray);
-	memset(pArray, 0, sabWrite[0].cElements * sizeof(long));
-
-	/*释放指向数组的指针*/
-	olesaWrite.UnaccessData();
-	pArray = NULL;
-
-	/*对二维数组的元素进行逐个赋值*/
-	long index[2] = {0, 0};
-	long lFirstLBound = 1;
-	long lFirstUBound = 1;
-	olesaWrite.GetLBound(1, &lFirstLBound);
-	olesaWrite.GetUBound(1, &lFirstUBound);
-
-	index[0] = 1;
-	for (long i = lFirstLBound; i <= lFirstUBound && i<vd.size()%20; i++)
+	if( 0 != row.GetSize() )
 	{
-		index[1] = i;
-		CString sElement;
-		int t;
-		double db = vd[row*20+i];
-		sElement.Format(_T(FORMAT_STRING), vd[row*20 +i]);
-		olesaWrite.PutElement(index, &sElement);
+		newxls.AddRow(row, iCnt++, true);
 	}
-
-
-	/*把ColesaWritefeArray变量转换为VARIANT,并写入到Excel表格中*/
-	VARIANT varWrite = (VARIANT)olesaWrite;
-	range.put_Value2(varWrite);
-
-
-	//XlSaveConflictResolution xlscr = xlLocalSessionChanges;
-	
-	/*释放资源*/
-	//AfxMessageBox(filename);
-
-	sheet.ReleaseDispatch();
-	sheets.ReleaseDispatch();
-	//book.Close(_variant_t(true),_variant_t(filename),vtMissing);
-	book.ReleaseDispatch();
+	newxls.Commit();
 }

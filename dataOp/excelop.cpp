@@ -159,7 +159,6 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 		lpDisp = sheet.get_UsedRange();
 		range.AttachDispatch(lpDisp);
 
-		range.put_NumberFormat(COleVariant(L"@"));
 		/*读取Excel表中的多个单元格的值，在listctrl中显示*/
 		VARIANT varRead = range.get_Value2();
 		COleSafeArray olesaRead(varRead);
@@ -215,14 +214,15 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 					
 					int pos = 0;
 					str += " ";
-					
+					//AfxMessageBox(str);
 		
 					while( pos < str.GetLength() )
 					{
 						vDq.push_back( GetNumber(str, _T(" "),&pos) );
-						if( vDq.size() % 20 == 0 )
+						if( vDq.size() % 20 == 0 && !pThis->m_bIsExcel )
 						{
 							pThis->DisPlay( vDq );
+							vDq.clear();
 						}
 					}
 					
@@ -236,9 +236,7 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 
 	rs = pThis->m_strCurBook + _T(" 处理完成");
 	pList->AddString(rs);
-// 	CString str ;
-// 	str.Format(_T("%d"), vDq.size());
-// 	AfxMessageBox(str);
+
 
 	/*释放资源*/
 	sheet.ReleaseDispatch();

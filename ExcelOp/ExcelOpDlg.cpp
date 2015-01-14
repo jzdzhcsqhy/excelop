@@ -8,7 +8,7 @@
 #include "afxdialogex.h"
 #include <fstream>
 #include <string>
-
+#include "CSpreadSheet.h"
 
 using namespace std;
 
@@ -167,57 +167,18 @@ HCURSOR CExcelOpDlg::OnQueryDragIcon()
 void CExcelOpDlg::OnBnClickedOk()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	_Application app;
-	Workbooks books;
-	_Workbook book;
-	Worksheets sheets;
-	_Worksheet sheet;
-	Range range;
-	//Font font;
-	Range cols;
-	COleVariant covOPtional((long) DISP_E_PARAMNOTFOUND,VT_ERROR);
+	CSpreadSheet shh("C:\\Users\\Free\\Desktop\\input\\122.xls","Sheet\\\(N2\\\)");
 
-	ifstream fin("1.csv");
-	string str;
-	str.clear();
-	if(!app.CreateDispatch(_T("Excel.Application")))
+	shh.BeginTransaction();
+	CStringArray header;
+	CString str;
+	for(int i=1; i<10; i++ )
 	{
-		AfxMessageBox(_T("无法创建Excel应用！"));  
-		return;
+		str.Format("%c", 'A'+i);
+		header.Add(str);
 	}
-	books=app.GetWorkbooks();
-	book=books.Add(covOPtional);
-	sheets=book.GetSheets();
-	sheet=sheets.GetItem(COleVariant((short)1));
-	while( fin >> str )
-	{
-		CString str1;
-		str1.Format(_T("%s"), str.c_str());
-		//AfxMessageBox(str1);
-		
-		
-		
-		
-		/*range=sheet.GetRange(COleVariant(_T("A1")),COleVariant(_T("A1")));
-		range.SetValue(COleVariant(_T("HELLO EXCEL!")));
-		range=sheet.GetRange(COleVariant(_T("A2")),COleVariant(_T("A2")));
-		range.SetFormula(COleVariant(_T("0000")));
-		range.SetNumberFormat(COleVariant(_T("$0.00")));
-		*/
-		range = sheet.GetRange(COleVariant(_T("A2")),COleVariant(_T("A5")));
-		range.Merge(COleVariant(_T("FALSE")));
-
-		cols=range.GetEntireColumn();
-		cols.AutoFit();
-		str.clear();
-		break;
-	}
-	system("del C:\\Users\\Free\\Desktop\\rs.xls");
-	app.SetVisible(TRUE);
-	
-	book.SaveAs(COleVariant(_T("C:\\Users\\Free\\Desktop\\rs.xls")),covOPtional ,
-		covOPtional,covOPtional,
-		covOPtional,covOPtional,(long)0,covOPtional,covOPtional,covOPtional,
-		covOPtional);
+	shh.AddHeaders(header);
+	shh.AddRow(header,10,false);
+	shh.Commit();
 	CDialogEx::OnOK();
 }
