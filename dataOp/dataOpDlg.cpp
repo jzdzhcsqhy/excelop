@@ -161,7 +161,7 @@ BOOL CdataOpDlg::OnInitDialog()
 	/*得到工作簿容器*/
 	this->m_books.AttachDispatch(this->m_ExcelApp.get_Workbooks());
 
-	this->m_bIsExcel = false;
+	this->m_bIsExcel = true;
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }

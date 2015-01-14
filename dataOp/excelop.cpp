@@ -188,7 +188,8 @@ void CdataOpDlg::dealWith(const CString &filename, CdataOpDlg* pThis)
 		for(i=lFirstLBound; i<lFirstUBound; i++)
 		{
 			index[0] = i;
-			for( j=8; j<=11; j++ )
+			 j=lSecondLBound>8? lSecondLBound:8;
+			for( j ; j<=11 && j<=lSecondUBound; j++ )
 			{
 			
 				index[1] = j;
