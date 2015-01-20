@@ -5,7 +5,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExcelOp", "ExcelOp\ExcelOp.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dateoperate", "dateoperate\dateoperate.vcxproj", "{40FCFFA3-A36C-452D-922C-ED63F3C1D552}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dataOp", "dataOp\dataOp.vcxproj", "{177BBDCE-70BE-4B78-957F-DF9470EF229C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "白羽的转换", "dataOp\dataOp.vcxproj", "{177BBDCE-70BE-4B78-957F-DF9470EF229C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "学习笔记", "学习笔记\学习笔记.vcxproj", "{A4651CC0-C7FB-4AD3-A5DF-9B14E7C52B71}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +27,10 @@ Global
 		{177BBDCE-70BE-4B78-957F-DF9470EF229C}.Debug|Win32.Build.0 = Debug|Win32
 		{177BBDCE-70BE-4B78-957F-DF9470EF229C}.Release|Win32.ActiveCfg = Release|Win32
 		{177BBDCE-70BE-4B78-957F-DF9470EF229C}.Release|Win32.Build.0 = Release|Win32
+		{A4651CC0-C7FB-4AD3-A5DF-9B14E7C52B71}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A4651CC0-C7FB-4AD3-A5DF-9B14E7C52B71}.Debug|Win32.Build.0 = Debug|Win32
+		{A4651CC0-C7FB-4AD3-A5DF-9B14E7C52B71}.Release|Win32.ActiveCfg = Release|Win32
+		{A4651CC0-C7FB-4AD3-A5DF-9B14E7C52B71}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
